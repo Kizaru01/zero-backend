@@ -6,6 +6,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use App\Models\Ride;
 use App\Models\Driver;
+use Illuminate\Support\Facades\Gate;
 
 class RideController extends Controller
 {
@@ -22,18 +23,22 @@ class RideController extends Controller
         ]);
         return response()->json($ride, 201);
     }
-    public function index()
+    public function index(Request $request)
     {
-        $rides = Ride::all();
+        $rides = $request->user()->rides;
 
         return response()->json($rides);
     }
-    public function show(Ride $ride)
+    public function show(Request $request, Ride $ride)
     {
+        Gate::authorize('view', $ride);
+
         return response()->json($ride);
     }
     public function update(Request $request, Ride $ride)
     {
+        Gate::authorize('update', $ride);
+
         $validatedData = $request->validate([
             'pickup' => 'required|string',
             'destination' => 'required|string',
@@ -56,6 +61,9 @@ class RideController extends Controller
     }
     public function destroy(Ride $ride)
     {
+
+        Gate::authorize('delete', $ride);
+
         $ride->delete();
 
         return response()->json([
@@ -64,6 +72,8 @@ class RideController extends Controller
     }
     public function updateStatus(Request $request, Ride $ride)
     {
+        Gate::authorize('update', $ride);
+
         $validatedData = $request->validate([
             'status' => [
                 'required',
